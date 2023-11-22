@@ -61,6 +61,6 @@ export default defineConfig({
     webServer: {
         command: `npx vite --port ${process.env.TEST_SERVER_PORT || 3000}`,
         port: parseInt(process.env.TEST_SERVER_PORT || '3000'),
-        reuseExistingServer: !process.env.CI
+        reuseExistingServer: true
     }
 })
