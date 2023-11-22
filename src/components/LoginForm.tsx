@@ -1,8 +1,10 @@
-import { FormEvent, useState } from 'react'
 import { ApolloError } from '@apollo/client'
-import { useAuth } from './hooks/useAuth'
+import { useState, FormEvent } from 'react'
+import { useNavigate } from 'react-router'
+import { useAuth } from '../hooks/useAuth'
 
 const LoginForm = () => {
+    const navigate = useNavigate()
     const { login } = useAuth()
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
@@ -14,7 +16,7 @@ const LoginForm = () => {
         e.preventDefault()
         login(email, password)
             .then(() => {
-                console.log('successfully logged in')
+                navigate('/nodes')
             })
             .catch((error: ApolloError) => {
                 if (error.message === 'auth_login_with_email_and_password_unspecified_auth') {
@@ -29,16 +31,16 @@ const LoginForm = () => {
     }
 
     return (
-        <form onSubmit={handleLogin} className="max-w-md mx-auto my-8">
+        <form onSubmit={handleLogin}>
             <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-                    Username:
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+                    E-Mail:
                 </label>
                 <input
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"
-                    id="username"
-                    type="text"
-                    placeholder="Username"
+                    id="email"
+                    type="email"
+                    placeholder="Email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
