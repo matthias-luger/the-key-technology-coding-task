@@ -3,7 +3,7 @@ import LoginForm from '../components/LoginForm'
 const LoginPage = () => {
     return (
         <>
-            <div className="max-w-md mx-auto my-8">
+            <div className="container mx-auto max-w-md pt-48 h-screen px-10">
                 <LoginForm />
             </div>
         </>

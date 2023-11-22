@@ -9,7 +9,7 @@ interface ContentNode {
     }
 }
 
-interface ContentNodeQueryResult {
+export interface ContentNodeQueryResult {
     Admin: {
         Tree: {
             GetContentNodes: {
@@ -34,12 +34,19 @@ const NodeList = () => {
             ) : (
                 <>
                     <div className="h-80 overflow-y-scroll">
-                        <ul className="list-none pl-4 divide-y divide-gray-100">
+                        <ul id="node-list" className="list-none pl-4 divide-y divide-gray-100">
                             {contentNodes.map((node, index) => (
                                 <li key={index} className="py-5">
                                     <span> {node.node.structureDefinition.title}</span>
                                 </li>
                             ))}
+                            {contentNodes.length === 0 ? (
+                                <>
+                                    <li className="py-5 text-gray-500">
+                                        <span> No nodes found</span>
+                                    </li>
+                                </>
+                            ) : null}
                         </ul>
                         {error ? (
                             <>
