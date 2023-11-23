@@ -16,12 +16,14 @@
     "graphql": "^16.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.19.0"
+    "react-router-dom": "^6.19.0",
+    "react-window": "^1.8.10"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
+    "@types/react-window": "^1.8.8",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-react": "^4.2.0",

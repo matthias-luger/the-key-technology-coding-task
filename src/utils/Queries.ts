@@ -19,6 +19,7 @@ export const GET_CONTENT_NODES_QUERY = gql`
                 GetContentNodes {
                     edges {
                         node {
+                            id
                             structureDefinition {
                                 title
                             }

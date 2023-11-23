@@ -1,8 +1,10 @@
 import { useQuery } from '@apollo/client'
 import { GET_CONTENT_NODES_QUERY } from '../utils/Queries'
+import { FixedSizeList as List } from 'react-window'
 
 interface ContentNode {
     node: {
+        id: string
         structureDefinition: {
             title: string
         }
@@ -33,29 +35,42 @@ const NodeList = () => {
                 </div>
             ) : (
                 <>
-                    <div className="h-80 overflow-y-scroll">
-                        <ul id="node-list" className="list-none pl-4 divide-y divide-gray-100">
-                            {contentNodes.map((node, index) => (
-                                <li key={index} className="py-5">
-                                    <span> {node.node.structureDefinition.title}</span>
+                    <List
+                        itemKey={index => {
+                            return contentNodes[index].node.id
+                        }}
+                        className="list-none pl-4"
+                        height={320}
+                        itemCount={contentNodes.length}
+                        itemSize={50}
+                        width={'auto'}
+                    >
+                        {({ index, style }) => {
+                            return (
+                                <li
+                                    key={index}
+                                    className="border-b-2 border-gray-300 transition-all duration-300 hover:bg-gray-100 flex items-center"
+                                    style={style}
+                                >
+                                    <span className="text-lg font-semibold">{contentNodes[index].node.structureDefinition.title}</span>
                                 </li>
-                            ))}
-                            {contentNodes.length === 0 ? (
-                                <>
-                                    <li className="py-5 text-gray-500">
-                                        <span> No nodes found</span>
-                                    </li>
-                                </>
-                            ) : null}
-                        </ul>
-                        {error ? (
-                            <>
-                                <hr className="my-4" />
-                                <p className="text-red-500">Failed to load nodes:</p>
-                                <p className="text-red-500 font-bold">{error.message}</p>
-                            </>
-                        ) : null}
-                    </div>
+                            )
+                        }}
+                    </List>
+                    {contentNodes.length === 0 && !error ? (
+                        <>
+                            <li className="py-5 text-gray-500">
+                                <span> No nodes found</span>
+                            </li>
+                        </>
+                    ) : null}
+                    {error ? (
+                        <>
+                            <hr className="my-4" />
+                            <p className="text-red-500">Failed to load nodes:</p>
+                            <p className="text-red-500 font-bold">{error.message}</p>
+                        </>
+                    ) : null}
                 </>
             )}
         </>

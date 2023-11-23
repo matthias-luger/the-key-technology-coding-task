@@ -2,6 +2,7 @@ import { ApolloError } from '@apollo/client'
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
+import { LOCAL_STORAGE_KEYS, setIntoLocalStorage } from '../utils/LocalStorageUtils'
 
 const LoginForm = () => {
     const navigate = useNavigate()
@@ -16,6 +17,7 @@ const LoginForm = () => {
         e.preventDefault()
         login(email, password)
             .then(() => {
+                setIntoLocalStorage(LOCAL_STORAGE_KEYS.LOGIN_EMAIL, email)
                 navigate('/nodes')
             })
             .catch((error: ApolloError) => {
