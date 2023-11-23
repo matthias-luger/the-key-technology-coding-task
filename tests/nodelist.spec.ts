@@ -22,7 +22,7 @@ test('loads and displays nodes', async ({ page }) => {
     await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
 
     await expect(page.getByText('Content Nodes')).toBeVisible()
-    await expect(page.locator('#node-list > li')).toHaveCount(8)
+    await expect(page.locator('.node-list li')).toHaveCount(8)
 })
 
 test('displays no nodes message', async ({ page }) => {

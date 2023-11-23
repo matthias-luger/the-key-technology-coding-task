@@ -26,7 +26,7 @@ const NodeList = () => {
 
     const contentNodes = data ? data.Admin.Tree.GetContentNodes.edges : []
     return (
-        <>
+        <div className="node-list">
             <h2 className="text-2xl font-bold mb-4">Content Nodes</h2>
             {loading ? (
                 <div className="flex flex-col items-center justify-center">
@@ -73,7 +73,7 @@ const NodeList = () => {
                     ) : null}
                 </>
             )}
-        </>
+        </div>
     )
 }
 
