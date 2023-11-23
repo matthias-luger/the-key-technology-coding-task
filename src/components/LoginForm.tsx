@@ -7,8 +7,8 @@ import { LOCAL_STORAGE_KEYS, setIntoLocalStorage } from '../utils/LocalStorageUt
 const LoginForm = () => {
     const navigate = useNavigate()
     const { login } = useAuth()
-    const [email, setEmail] = useState<string>(import.meta.env.VITE_TEST_EMAIL || '')
-    const [password, setPassword] = useState<string>(import.meta.env.VITE_TEST_PASSWORD || '')
+    const [email, setEmail] = useState<string>('')
+    const [password, setPassword] = useState<string>('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string>()
 
