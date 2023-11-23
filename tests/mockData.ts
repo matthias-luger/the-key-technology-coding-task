@@ -14,6 +14,7 @@ export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNode
     for (let i = 0; i < numberOfNodes; i++) {
         mockResponse.Admin.Tree.GetContentNodes.edges.push({
             node: {
+                id: `id-${i}`,
                 structureDefinition: {
                     title: `Title ${i}`
                 }

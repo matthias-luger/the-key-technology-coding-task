@@ -8,7 +8,7 @@ const NodeListPage = () => {
     const navigate = useNavigate()
     const { logout } = useAuth()
 
-    const handleLogout = () => {
+    function handleLogout() {
         logout()
         navigate('/')
     }

@@ -12,7 +12,7 @@ const LoginForm = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string>()
 
-    const handleLogin = (e: FormEvent) => {
+    function handleLogin(e: FormEvent) {
         setLoading(true)
         e.preventDefault()
         login(email, password)

@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     })
     const [loginMutation] = useMutation(LOGIN_MUTATION)
 
-    const login = (email: string, password: string): Promise<void> => {
+    function login(email: string, password: string): Promise<void> {
         return new Promise((resolve, reject) => {
             loginMutation({
                 variables: {
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         })
     }
 
-    const logout = () => {
+    function logout() {
         removeFromLocalStorage(LOCAL_STORAGE_KEYS.LOGIN_JWT)
         setState({
             isAuthenticated: false,
