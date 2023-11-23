@@ -2,52 +2,126 @@ import { useQuery } from '@apollo/client'
 import { GET_CONTENT_NODES_QUERY } from '../utils/Queries'
 import { FixedSizeList as List } from 'react-window'
 import DraggableNodeListItem from './NodeListItem'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 export interface ContentNode {
-    node: {
-        id: string
-        structureDefinition: {
-            title: string
-        }
+    id: string
+    structureDefinition: {
+        title: string
     }
+}
+export interface Edge {
+    node: ContentNode
+    cursor: string
 }
 
 export interface ContentNodeQueryResult {
     Admin: {
         Tree: {
             GetContentNodes: {
-                edges: ContentNode[]
+                edges: Edge[]
+                pageInfo: {
+                    hasNextPage: boolean
+                }
             }
         }
     }
 }
 
 const NodeList = () => {
-    const { loading, error } = useQuery<ContentNodeQueryResult>(GET_CONTENT_NODES_QUERY, {
-        onCompleted: onAfterNodesLoaded
-    })
-    const [contentNodes, setContentNodes] = useState<ContentNode[]>([])
+    const { loading, error, data, fetchMore, client } = useQuery<ContentNodeQueryResult>(GET_CONTENT_NODES_QUERY)
+    const [hasNextPage, setHasNextPage] = useState<boolean>(true)
 
-    function onAfterNodesLoaded(data: ContentNodeQueryResult) {
+    const contentNodes = useMemo(() => {
+        if (!data) {
+            return []
+        }
+
+        let wasFiltered = false
         // filter nodes with same id as this breaks react-window & drag'n'drop
         const ids: string[] = []
         const filtered = data.Admin.Tree.GetContentNodes.edges.filter(node => {
             if (ids.includes(node.node.id)) {
+                wasFiltered = true
                 return false
             } else {
                 ids.push(node.node.id)
                 return true
             }
         })
-        setContentNodes(filtered)
+        if (!data.Admin.Tree.GetContentNodes.pageInfo.hasNextPage) {
+            setHasNextPage(false)
+        }
+
+        if (wasFiltered) {
+            updateLocalNodeData(filtered)
+        }
+
+        return filtered
+    }, [data])
+
+    function fetchMoreNodes() {
+        if (!hasNextPage) {
+            return
+        }
+        fetchMore({
+            variables: {
+                after: contentNodes[contentNodes.length - 1].cursor
+            },
+            updateQuery: (previousData, options) => {
+                if (!options.fetchMoreResult) {
+                    return previousData
+                }
+                const newEdges = options.fetchMoreResult.Admin.Tree.GetContentNodes.edges
+                const pageInfo = options.fetchMoreResult.Admin.Tree.GetContentNodes.pageInfo
+                return newEdges.length
+                    ? {
+                          Admin: {
+                              Tree: {
+                                  GetContentNodes: {
+                                      edges: [...previousData.Admin.Tree.GetContentNodes.edges, ...newEdges],
+                                      pageInfo
+                                  }
+                              }
+                          }
+                      }
+                    : previousData
+            }
+        })
+    }
+
+    function updateLocalNodeData(edges: Edge[]) {
+        if (!data) {
+            return
+        }
+        client.writeQuery<ContentNodeQueryResult>({
+            query: GET_CONTENT_NODES_QUERY,
+            data: {
+                ...data,
+                Admin: {
+                    ...data.Admin,
+                    Tree: {
+                        ...data.Admin.Tree,
+                        GetContentNodes: {
+                            ...data.Admin.Tree.GetContentNodes,
+                            edges: edges
+                        }
+                    }
+                }
+            }
+        })
     }
 
     function moveNode(dragIndex: number, hoverIndex: number) {
-        const newNodes = [...contentNodes]
+        if (!data) {
+            return
+        }
+
+        const newNodes = [...data.Admin.Tree.GetContentNodes.edges]
         const draggedItem = newNodes.splice(dragIndex, 1)[0]
         newNodes.splice(hoverIndex, 0, draggedItem)
-        setContentNodes(newNodes)
+
+        updateLocalNodeData(newNodes)
     }
 
     return (
@@ -59,20 +133,31 @@ const NodeList = () => {
                     <p className="text-gray-600">Loading nodes...</p>
                 </div>
             ) : (
-                <>
-                    <List<ContentNode>
+                <div>
+                    <List<Edge>
+                        onItemsRendered={props => {
+                            if (props.visibleStopIndex === contentNodes.length - 1) {
+                                fetchMoreNodes()
+                            }
+                        }}
                         itemKey={index => {
-                            return contentNodes[index]?.node?.id || 'empty'
+                            return contentNodes[index]?.node?.id
                         }}
                         className="list-none pl-4"
                         height={320}
                         itemCount={contentNodes.length}
-                        itemSize={50}
+                        itemSize={80}
                         width={'auto'}
                     >
                         {({ index, style, data }) => {
                             return (
-                                <DraggableNodeListItem index={index} key={index} contentNode={contentNodes[index] || data} style={style} moveNode={moveNode} />
+                                <DraggableNodeListItem
+                                    index={index}
+                                    key={index}
+                                    contentNode={contentNodes[index].node || data.node}
+                                    style={style}
+                                    moveNode={moveNode}
+                                />
                             )
                         }}
                     </List>
@@ -90,7 +175,7 @@ const NodeList = () => {
                             <p className="text-red-500 font-bold">{error.message}</p>
                         </>
                     ) : null}
-                </>
+                </div>
             )}
         </div>
     )

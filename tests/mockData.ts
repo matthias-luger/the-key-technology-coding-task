@@ -5,7 +5,10 @@ export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNode
         Admin: {
             Tree: {
                 GetContentNodes: {
-                    edges: []
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false
+                    }
                 }
             }
         }
@@ -18,7 +21,8 @@ export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNode
                 structureDefinition: {
                     title: `Title ${i}`
                 }
-            }
+            },
+            cursor: `cursor-${i}`
         })
     }
     return { data: mockResponse }

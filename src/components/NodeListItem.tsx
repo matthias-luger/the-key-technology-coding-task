@@ -57,13 +57,13 @@ const DraggableNodeListItem = ({ contentNode, style, index, moveNode }: Props) =
     const [{ isDragging }, drag] = useDrag({
         type: 'node-list-item',
         item: () => {
-            return { id: contentNode.node.id, index }
+            return { id: contentNode.id, index }
         },
         collect: monitor => ({
             isDragging: monitor.isDragging()
         }),
         isDragging(monitor) {
-            return contentNode.node.id === monitor.getItem().id
+            return contentNode.id === monitor.getItem().id
         }
     })
     drag(drop(dragRef))
@@ -71,11 +71,11 @@ const DraggableNodeListItem = ({ contentNode, style, index, moveNode }: Props) =
     return (
         <li
             ref={dragRef}
-            key={contentNode.node.id}
+            key={contentNode.id}
             className="border-b-2 border-gray-300 transition-all duration-300 hover:bg-gray-100 flex items-center"
             style={{ ...style, color: isDragging ? 'rgba(0,0,0, 0.2)' : 'inherit' }}
         >
-            <span className="text-lg font-semibold">{contentNode.node.structureDefinition.title}</span>
+            <span className="text-lg font-semibold">{contentNode.structureDefinition.title}</span>
         </li>
     )
 }
