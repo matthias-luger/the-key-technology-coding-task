@@ -1,6 +1,6 @@
 import { CSSProperties, useRef } from 'react'
 import { ContentNode } from './NodeList'
-import { XYCoord, useDrag, useDrop } from 'react-dnd'
+import { useDrag, useDrop } from 'react-dnd'
 
 interface Props {
     index: number
@@ -24,7 +24,7 @@ const DraggableNodeListItem = ({ contentNode, style, index, moveNode }: Props) =
                 handlerId: monitor.getHandlerId()
             }
         },
-        hover(item: DragItem, monitor) {
+        hover(item: DragItem) {
             if (!dragRef.current) {
                 return
             }
@@ -32,20 +32,6 @@ const DraggableNodeListItem = ({ contentNode, style, index, moveNode }: Props) =
             const hoverIndex = index
 
             if (dragIndex === hoverIndex) {
-                return
-            }
-
-            // calculate if the node should move
-            const hoverBoundingRect = dragRef.current?.getBoundingClientRect()
-            const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
-            const clientOffset = monitor.getClientOffset()
-            const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top
-
-            if (dragIndex < hoverIndex && hoverClientY <= hoverMiddleY) {
-                return
-            }
-
-            if (dragIndex > hoverIndex && hoverClientY >= hoverMiddleY) {
                 return
             }
 
