@@ -149,20 +149,17 @@ test('test lazy loading', async ({ page }) => {
     await page.locator('.node-list-item').nth(0).hover()
 
     let nodeTextContentBefore = await page.locator('.node-list-item').last().textContent()
-    await page.mouse.wheel(0, 1000)
-    await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
+    await scrollTillLazyLoad(page)
     let nodeTextContentAfter = await page.locator('.node-list-item').last().textContent()
     expect(parseInt(nodeTextContentBefore?.split(' ')[1] || '0')).toBeLessThan(parseInt(nodeTextContentAfter?.split(' ')[1] || '0'))
 
     nodeTextContentBefore = await page.locator('.node-list-item').last().textContent()
-    await page.mouse.wheel(0, 1000)
-    await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
+    await scrollTillLazyLoad(page)
     nodeTextContentAfter = await page.locator('.node-list-item').last().textContent()
     expect(parseInt(nodeTextContentBefore?.split(' ')[1] || '0')).toBeLessThan(parseInt(nodeTextContentAfter?.split(' ')[1] || '0'))
 
     nodeTextContentBefore = await page.locator('.node-list-item').last().textContent()
-    await page.mouse.wheel(0, 1000)
-    await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
+    await scrollTillLazyLoad(page)
     nodeTextContentAfter = await page.locator('.node-list-item').last().textContent()
     expect(parseInt(nodeTextContentBefore?.split(' ')[1] || '0')).toBeLessThan(parseInt(nodeTextContentAfter?.split(' ')[1] || '0'))
 })
@@ -180,19 +177,17 @@ test('test drag and drop persist order with lazy loading', async ({ page }) => {
 
     await page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
     await page.locator('.node-list-item').nth(0).hover()
-    await page.mouse.wheel(0, 1000)
-    await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
-    await page.mouse.wheel(0, 1000)
+    await scrollTillLazyLoad(page)
+    await scrollTillLazyLoad(page)
 
     await moveNodes(page, 'Title 19', 'Title 20')
 
-    await page.reload()
     requestNumber = 0
+    await page.reload()
 
     await page.locator('.node-list-item').nth(0).hover()
-    await page.mouse.wheel(0, 1000)
-    await page.waitForResponse(process.env.VITE_GRAPHQL_URL || '')
-    await page.mouse.wheel(0, 1000)
+    await scrollTillLazyLoad(page)
+    await scrollTillLazyLoad(page)
     const currentOrder = await page.$$eval('.node-list-item', nodes => nodes.map(node => node.textContent))
 
     let isStillSwitched = false
@@ -205,6 +200,21 @@ test('test drag and drop persist order with lazy loading', async ({ page }) => {
     }
     expect(isStillSwitched).toBeTruthy()
 })
+
+// This function scrolls until the layload function calls the graphql endpoint
+// This is used instead of scrollIntoView because it is inconsistent between browsers and doesnt work correctly with a virtualized list
+async function scrollTillLazyLoad(page: Page) {
+    return new Promise<void>(resolve => {
+        let interval: NodeJS.Timeout | undefined = undefined
+        page.waitForResponse(process.env.VITE_GRAPHQL_URL || '').then(() => {
+            clearInterval(interval)
+            resolve()
+        })
+        interval = setInterval(async () => {
+            await page.mouse.wheel(0, 1000)
+        }, 500)
+    })
+}
 
 async function moveNodes(page: Page, nodeTitle1: string, nodeTitle2: string) {
     // Drag the first node to the second position
