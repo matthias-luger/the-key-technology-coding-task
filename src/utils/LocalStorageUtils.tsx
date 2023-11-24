@@ -1,6 +1,7 @@
 export enum LOCAL_STORAGE_KEYS {
     LOGIN_JWT = 'loginJwt',
-    LOGIN_EMAIL = 'loginEmail'
+    LOGIN_EMAIL = 'loginEmail',
+    NODE_ORDERS = 'nodeOrders'
 }
 
 export function getFromLocalStorage(key: LOCAL_STORAGE_KEYS) {

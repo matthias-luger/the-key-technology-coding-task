@@ -2,7 +2,8 @@ import { useQuery } from '@apollo/client'
 import { GET_CONTENT_NODES_QUERY } from '../utils/Queries'
 import { FixedSizeList as List } from 'react-window'
 import DraggableNodeListItem from './NodeListItem'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { LOCAL_STORAGE_KEYS, getFromLocalStorage } from '../utils/LocalStorageUtils'
 
 export interface ContentNode {
     id: string
@@ -22,6 +23,7 @@ export interface ContentNodeQueryResult {
                 edges: Edge[]
                 pageInfo: {
                     hasNextPage: boolean
+                    endCursor: string
                 }
             }
         }
@@ -29,36 +31,19 @@ export interface ContentNodeQueryResult {
 }
 
 const NodeList = () => {
-    const { loading, error, data, fetchMore, client } = useQuery<ContentNodeQueryResult>(GET_CONTENT_NODES_QUERY)
+    const { loading, error, fetchMore } = useQuery<ContentNodeQueryResult>(GET_CONTENT_NODES_QUERY, {
+        variables: {
+            first: 5
+        },
+        onCompleted(data) {
+            setLastCursor(data.Admin.Tree.GetContentNodes.pageInfo.endCursor)
+            updateLocalNodeData(data.Admin.Tree.GetContentNodes.edges)
+            setHasNextPage(data.Admin.Tree.GetContentNodes.pageInfo.hasNextPage)
+        }
+    })
     const [hasNextPage, setHasNextPage] = useState<boolean>(true)
-
-    const contentNodes = useMemo(() => {
-        if (!data) {
-            return []
-        }
-
-        let wasFiltered = false
-        // filter nodes with same id as this breaks react-window & drag'n'drop
-        const ids: string[] = []
-        const filtered = data.Admin.Tree.GetContentNodes.edges.filter(node => {
-            if (ids.includes(node.node.id)) {
-                wasFiltered = true
-                return false
-            } else {
-                ids.push(node.node.id)
-                return true
-            }
-        })
-        if (!data.Admin.Tree.GetContentNodes.pageInfo.hasNextPage) {
-            setHasNextPage(false)
-        }
-
-        if (wasFiltered) {
-            updateLocalNodeData(filtered)
-        }
-
-        return filtered
-    }, [data])
+    const [lastCursor, setLastCursor] = useState<string>('')
+    const [contentNodes, setContentNodes] = useState<Edge[]>([])
 
     function fetchMoreNodes() {
         if (!hasNextPage) {
@@ -66,45 +51,27 @@ const NodeList = () => {
         }
         fetchMore({
             variables: {
-                after: contentNodes[contentNodes.length - 1].cursor
+                after: lastCursor,
+                first: 3
             },
             updateQuery: (previousData, options) => {
-                if (!options.fetchMoreResult) {
-                    return previousData
+                if (!options.fetchMoreResult.Admin.Tree.GetContentNodes.pageInfo.hasNextPage) {
+                    setHasNextPage(false)
                 }
-                const newEdges = options.fetchMoreResult.Admin.Tree.GetContentNodes.edges
-                const pageInfo = options.fetchMoreResult.Admin.Tree.GetContentNodes.pageInfo
-                return newEdges.length
-                    ? {
-                          Admin: {
-                              Tree: {
-                                  GetContentNodes: {
-                                      edges: [...previousData.Admin.Tree.GetContentNodes.edges, ...newEdges],
-                                      pageInfo
-                                  }
-                              }
-                          }
-                      }
-                    : previousData
-            }
-        })
-    }
 
-    function updateLocalNodeData(edges: Edge[]) {
-        if (!data) {
-            return
-        }
-        client.writeQuery<ContentNodeQueryResult>({
-            query: GET_CONTENT_NODES_QUERY,
-            data: {
-                ...data,
-                Admin: {
-                    ...data.Admin,
-                    Tree: {
-                        ...data.Admin.Tree,
-                        GetContentNodes: {
-                            ...data.Admin.Tree.GetContentNodes,
-                            edges: edges
+                const pageInfo = options.fetchMoreResult.Admin.Tree.GetContentNodes.pageInfo
+                const newEdges = [...previousData.Admin.Tree.GetContentNodes.edges, ...options.fetchMoreResult.Admin.Tree.GetContentNodes.edges]
+
+                setLastCursor(pageInfo.endCursor)
+                updateLocalNodeData(newEdges)
+
+                return {
+                    Admin: {
+                        Tree: {
+                            GetContentNodes: {
+                                edges: newEdges,
+                                pageInfo
+                            }
                         }
                     }
                 }
@@ -112,16 +79,34 @@ const NodeList = () => {
         })
     }
 
-    function moveNode(dragIndex: number, hoverIndex: number) {
-        if (!data) {
-            return
+    function updateLocalNodeData(edges: Edge[], needsSorting = true) {
+        let newContentNodes = [...edges]
+        newContentNodes = newContentNodes.filter((edge, index, self) => {
+            return index === self.findIndex(e => e.node.id === edge.node.id)
+        })
+        if (needsSorting) {
+            const orderMap = JSON.parse(getFromLocalStorage(LOCAL_STORAGE_KEYS.NODE_ORDERS) || '{}')
+            newContentNodes.sort((a, b) => {
+                const orderA = orderMap[a.node.id] || Number.MAX_SAFE_INTEGER
+                const orderB = orderMap[b.node.id] || Number.MAX_SAFE_INTEGER
+                return orderA - orderB
+            })
         }
+        setContentNodes(newContentNodes)
+    }
 
-        const newNodes = [...data.Admin.Tree.GetContentNodes.edges]
+    function moveNode(dragIndex: number, hoverIndex: number) {
+        const newNodes = [...contentNodes]
         const draggedItem = newNodes.splice(dragIndex, 1)[0]
         newNodes.splice(hoverIndex, 0, draggedItem)
 
-        updateLocalNodeData(newNodes)
+        const nodeOrder: { [key: string]: number } = JSON.parse(getFromLocalStorage(LOCAL_STORAGE_KEYS.NODE_ORDERS) || '{}')
+        newNodes.forEach((edge, index) => {
+            nodeOrder[edge.node.id] = index + 1
+        })
+        localStorage.setItem(LOCAL_STORAGE_KEYS.NODE_ORDERS, JSON.stringify(nodeOrder))
+
+        updateLocalNodeData(newNodes, false)
     }
 
     return (
@@ -136,6 +121,9 @@ const NodeList = () => {
                 <div>
                     <List<Edge>
                         onItemsRendered={props => {
+                            if (loading) {
+                                return
+                            }
                             if (props.visibleStopIndex === contentNodes.length - 1) {
                                 fetchMoreNodes()
                             }
@@ -153,7 +141,7 @@ const NodeList = () => {
                             return (
                                 <DraggableNodeListItem
                                     index={index}
-                                    key={index}
+                                    key={contentNodes[index]?.node?.id}
                                     contentNode={contentNodes[index].node || data.node}
                                     style={style}
                                     moveNode={moveNode}

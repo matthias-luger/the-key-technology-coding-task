@@ -13,10 +13,10 @@ export const LOGIN_MUTATION = gql`
 `
 
 export const GET_CONTENT_NODES_QUERY = gql`
-    query Query($after: String) {
+    query Query($first: Int, $after: String) {
         Admin {
             Tree {
-                GetContentNodes(first: 3, after: $after) {
+                GetContentNodes(first: $first, after: $after) {
                     edges {
                         node {
                             id
@@ -28,6 +28,7 @@ export const GET_CONTENT_NODES_QUERY = gql`
                     }
                     pageInfo {
                         hasNextPage
+                        endCursor
                     }
                 }
             }

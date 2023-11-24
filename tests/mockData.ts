@@ -7,7 +7,8 @@ export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNode
                 GetContentNodes: {
                     edges: [],
                     pageInfo: {
-                        hasNextPage: false
+                        hasNextPage: false,
+                        endCursor: ''
                     }
                 }
             }
