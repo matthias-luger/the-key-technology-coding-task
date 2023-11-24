@@ -41,11 +41,11 @@ const DraggableNodeListItem = ({ contentNode, style, index, moveNode }: Props) =
             const clientOffset = monitor.getClientOffset()
             const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top
 
-            if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+            if (dragIndex < hoverIndex && hoverClientY <= hoverMiddleY) {
                 return
             }
 
-            if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+            if (dragIndex > hoverIndex && hoverClientY >= hoverMiddleY) {
                 return
             }
 
