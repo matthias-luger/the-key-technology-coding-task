@@ -83,7 +83,7 @@ test('successfully logout', async ({ page }) => {
     expect(loginJwt).toBeNull()
 })
 
-test('drag and drop nodes to change order', async ({ page }) => {
+test('drag and drop nodes to change order', async ({ page, browserName }) => {
     await page.route(process.env.VITE_GRAPHQL_URL || '', async route => {
         await route.fulfill({
             status: 200,
@@ -94,14 +94,14 @@ test('drag and drop nodes to change order', async ({ page }) => {
 
     await page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
 
-    await moveNodes(page, 'Title 0', 'Title 1')
+    await moveNodes(page, browserName, 'Title 0', 'Title 1')
 
     const finalOrder = await page.$$eval('.node-list-item', nodes => nodes.map(node => node.textContent))
     expect(finalOrder[1]).toEqual('Title 0')
     expect(finalOrder[0]).toEqual('Title 1')
 })
 
-test('test if drag and drop persists after refresh', async ({ page }) => {
+test('test if drag and drop persists after refresh', async ({ page, browserName }) => {
     await page.route(process.env.VITE_GRAPHQL_URL || '', async route => {
         await route.fulfill({
             status: 200,
@@ -112,10 +112,10 @@ test('test if drag and drop persists after refresh', async ({ page }) => {
 
     await page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
 
-    await moveNodes(page, 'Title 0', 'Title 2')
-    await moveNodes(page, 'Title 3', 'Title 1')
-    await moveNodes(page, 'Title 1', 'Title 2')
-    await moveNodes(page, 'Title 3', 'Title 0')
+    await moveNodes(page, browserName, 'Title 0', 'Title 2')
+    await moveNodes(page, browserName, 'Title 3', 'Title 1')
+    await moveNodes(page, browserName, 'Title 1', 'Title 2')
+    await moveNodes(page, browserName, 'Title 3', 'Title 0')
 
     const expextedOrder = ['Title 2', 'Title 1', 'Title 0', 'Title 3']
 
@@ -164,7 +164,7 @@ test('test lazy loading', async ({ page }) => {
     expect(parseInt(nodeTextContentBefore?.split(' ')[1] || '0')).toBeLessThan(parseInt(nodeTextContentAfter?.split(' ')[1] || '0'))
 })
 
-test('test drag and drop persist order with lazy loading', async ({ page }) => {
+test('test drag and drop persist order with lazy loading', async ({ page, browserName }) => {
     let requestNumber = 0
     await page.route(process.env.VITE_GRAPHQL_URL || '', async route => {
         await route.fulfill({
@@ -180,7 +180,7 @@ test('test drag and drop persist order with lazy loading', async ({ page }) => {
     await scrollTillLazyLoad(page)
     await scrollTillLazyLoad(page)
 
-    await moveNodes(page, 'Title 19', 'Title 20')
+    await moveNodes(page, browserName, 'Title 19', 'Title 20')
     await page.waitForTimeout(1000)
 
     requestNumber = 0
@@ -218,9 +218,10 @@ async function scrollTillLazyLoad(page: Page) {
 }
 
 async function moveNodes(page: Page, browserName: string, nodeTitle1: string, nodeTitle2: string) {
-    const nodeToDrag = page.locator('li', { hasText: nodeTitle1 })
-    const dropTarget = page.locator('li', { hasText: nodeTitle2 })
+    // it seems like the .dragTo function is not working correctly in chromium,  therefore do it manually
     if (browserName === 'chromium') {
+        const nodeToDrag = page.locator('li', { hasText: nodeTitle1 })
+        const dropTarget = page.locator('li', { hasText: nodeTitle2 })
         const nodeToDragBoundingBox = await nodeToDrag.boundingBox()
         const dropTargetBoundingBox = await dropTarget.boundingBox()
 
@@ -236,7 +237,7 @@ async function moveNodes(page: Page, browserName: string, nodeTitle1: string, no
         await page.waitForTimeout(500)
         await page.mouse.up()
     } else {
-        await nodeToDrag.dragTo(dropTarget)
+        await page.locator('li', { hasText: nodeTitle1 }).dragTo(page.locator('li', { hasText: nodeTitle2 }))
         await page.waitForTimeout(500)
     }
 }
