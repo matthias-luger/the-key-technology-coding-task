@@ -1,13 +1,13 @@
 import { ContentNodeQueryResult } from '../src/components/NodeList'
 
-export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNodeQueryResult } {
+export function getNodesMockData(from: number, to: number, hasNextPage: boolean): { data: ContentNodeQueryResult } {
     const mockResponse: ContentNodeQueryResult = {
         Admin: {
             Tree: {
                 GetContentNodes: {
                     edges: [],
                     pageInfo: {
-                        hasNextPage: false,
+                        hasNextPage: hasNextPage,
                         endCursor: ''
                     }
                 }
@@ -15,7 +15,7 @@ export function getNodesMockData(numberOfNodes: number = 1): { data: ContentNode
         }
     }
 
-    for (let i = 0; i < numberOfNodes; i++) {
+    for (let i = from; i <= to; i++) {
         mockResponse.Admin.Tree.GetContentNodes.edges.push({
             node: {
                 id: `id-${i}`,

@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client'
 import { GET_CONTENT_NODES_QUERY } from '../utils/Queries'
 import { FixedSizeList as List } from 'react-window'
-import DraggableNodeListItem from './NodeListItem'
+import DraggableNodeListItem from './DraggableNodeListItem'
 import { useState } from 'react'
 import { LOCAL_STORAGE_KEYS, getFromLocalStorage } from '../utils/LocalStorageUtils'
 
