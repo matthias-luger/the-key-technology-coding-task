@@ -217,21 +217,26 @@ async function scrollTillLazyLoad(page: Page) {
     })
 }
 
-async function moveNodes(page: Page, nodeTitle1: string, nodeTitle2: string) {
-    const nodeToDrag = await page.locator('li', { hasText: nodeTitle1 })
-    const dropTarget = await page.locator('li', { hasText: nodeTitle2 })
-    const nodeToDragBoundingBox = await nodeToDrag.boundingBox()
-    const dropTargetBoundingBox = await dropTarget.boundingBox()
+async function moveNodes(page: Page, browserName: string, nodeTitle1: string, nodeTitle2: string) {
+    const nodeToDrag = page.locator('li', { hasText: nodeTitle1 })
+    const dropTarget = page.locator('li', { hasText: nodeTitle2 })
+    if (browserName === 'chromium') {
+        const nodeToDragBoundingBox = await nodeToDrag.boundingBox()
+        const dropTargetBoundingBox = await dropTarget.boundingBox()
 
-    if (!nodeToDragBoundingBox || !dropTargetBoundingBox) {
-        test.fail()
-        return
+        if (!nodeToDragBoundingBox || !dropTargetBoundingBox) {
+            test.fail()
+            return
+        }
+
+        await page.mouse.move(nodeToDragBoundingBox.x + nodeToDragBoundingBox.width / 2, nodeToDragBoundingBox.y + nodeToDragBoundingBox.height / 2)
+        await page.mouse.down()
+        await page.waitForTimeout(500)
+        await page.mouse.move(dropTargetBoundingBox.x + dropTargetBoundingBox.width / 2, dropTargetBoundingBox.y + dropTargetBoundingBox.height / 2)
+        await page.waitForTimeout(500)
+        await page.mouse.up()
+    } else {
+        await nodeToDrag.dragTo(dropTarget)
+        await page.waitForTimeout(500)
     }
-
-    await page.mouse.move(nodeToDragBoundingBox.x + nodeToDragBoundingBox.width / 2, nodeToDragBoundingBox.y + nodeToDragBoundingBox.height / 2)
-    await page.mouse.down()
-    await page.waitForTimeout(500)
-    await page.mouse.move(dropTargetBoundingBox.x + dropTargetBoundingBox.width / 2, dropTargetBoundingBox.y + dropTargetBoundingBox.height / 2)
-    await page.waitForTimeout(500)
-    await page.mouse.up()
 }
