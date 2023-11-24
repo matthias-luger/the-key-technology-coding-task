@@ -181,6 +181,7 @@ test('test drag and drop persist order with lazy loading', async ({ page }) => {
     await scrollTillLazyLoad(page)
 
     await moveNodes(page, 'Title 19', 'Title 20')
+    await page.waitForTimeout(1000)
 
     requestNumber = 0
     await page.reload()
