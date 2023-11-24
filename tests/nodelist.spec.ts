@@ -3,7 +3,7 @@ import { getNodesMockData } from './mockData'
 
 test('displays loading state', async ({ page }) => {
     page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
-    await page.locator('.animate-spin').waitFor({ state: 'visible' })
+    await page.locator('.animate-spin').waitFor({ state: 'visible', timeout: 5000 })
 })
 
 test('loads and displays nodes', async ({ page }) => {
@@ -218,18 +218,5 @@ async function scrollTillLazyLoad(page: Page) {
 
 async function moveNodes(page: Page, nodeTitle1: string, nodeTitle2: string) {
     // Drag the first node to the second position
-    const nodeToDrag = await page.locator('li', { hasText: nodeTitle1 })
-    const dropTarget = await page.locator('li', { hasText: nodeTitle2 })
-    const nodeToDragBoundingBox = await nodeToDrag.boundingBox()
-    const dropTargetBoundingBox = await dropTarget.boundingBox()
-
-    if (!nodeToDragBoundingBox || !dropTargetBoundingBox) {
-        test.fail()
-        return
-    }
-
-    await page.mouse.move(nodeToDragBoundingBox.x + nodeToDragBoundingBox.width / 2, nodeToDragBoundingBox.y + nodeToDragBoundingBox.height / 2)
-    await page.mouse.down()
-    await page.mouse.move(dropTargetBoundingBox.x + dropTargetBoundingBox.width / 2, dropTargetBoundingBox.y + dropTargetBoundingBox.height / 2)
-    await page.mouse.up()
+    await page.locator('li', { hasText: nodeTitle1 }).dragTo(page.locator('li', { hasText: nodeTitle2 }))
 }
