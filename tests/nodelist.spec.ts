@@ -140,7 +140,7 @@ test('test lazy loading', async ({ page }) => {
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(getNodesMockData(requestNumber * 10, (requestNumber + 1) * 10, true))
+            body: JSON.stringify(getNodesMockData(requestNumber * 10 + 1, (requestNumber + 1) * 10, true))
         })
         requestNumber++
     })
@@ -170,7 +170,7 @@ test('test drag and drop persist order with lazy loading', async ({ page }) => {
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(getNodesMockData(requestNumber * 10, (requestNumber + 1) * 10, true))
+            body: JSON.stringify(getNodesMockData(requestNumber * 10 + 1, (requestNumber + 1) * 10, true))
         })
         requestNumber++
     })

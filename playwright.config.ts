@@ -12,8 +12,7 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
     use: {
-        video: 'retain-on-failure',
-        trace: 'retain-on-failure'
+        trace: 'on'
     },
     projects: [
         {
