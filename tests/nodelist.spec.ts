@@ -77,7 +77,7 @@ test('displays error message', async ({ page }) => {
 test('successfully logout', async ({ page }) => {
     await page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
     await page.locator('button', { hasText: 'Logout' }).click()
-    await page.waitForURL(`http://localhost:${process.env.TEST_SERVER_PORT}/`)
+    await page.waitForURL(`http://localhost:${process.env.TEST_SERVER_PORT}/login`)
 
     const loginJwt = await page.evaluate(() => localStorage.getItem('loginJwt'))
     expect(loginJwt).toBeNull()
