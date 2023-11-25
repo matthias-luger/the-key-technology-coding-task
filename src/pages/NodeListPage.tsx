@@ -10,7 +10,7 @@ const NodeListPage = () => {
 
     function handleLogout() {
         logout()
-        navigate('/')
+        navigate('/login')
     }
 
     return (
