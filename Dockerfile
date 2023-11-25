@@ -7,9 +7,11 @@ COPY . .
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:mainline-alpine
+
+COPY docker-resources/nginx.conf /etc/nginx/conf.d
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# set port to 8000
 EXPOSE 8000
 
 CMD ["nginx", "-g", "daemon off;"]
