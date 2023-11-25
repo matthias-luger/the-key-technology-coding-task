@@ -2,8 +2,9 @@ import { test, expect, Page } from '@playwright/test'
 import { getNodesMockData } from './mockData'
 
 test('displays loading state', async ({ page }) => {
+    await page.route(process.env.VITE_GRAPHQL_URL || '', () => {})
     page.goto(`http://localhost:${process.env.TEST_SERVER_PORT}/nodes`)
-    await page.locator('.animate-spin').waitFor({ state: 'visible', timeout: 5000 })
+    await expect(page.locator('.animate-spin')).toBeVisible()
 })
 
 test('loads and displays nodes', async ({ page }) => {
