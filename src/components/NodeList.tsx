@@ -4,6 +4,7 @@ import { FixedSizeList as List } from 'react-window'
 import DraggableNodeListItem from './DraggableNodeListItem'
 import { useState } from 'react'
 import { LOCAL_STORAGE_KEYS, getFromLocalStorage } from '../utils/LocalStorageUtils'
+import { useNavigate } from 'react-router'
 
 export interface ContentNode {
     id: string
@@ -44,6 +45,11 @@ const NodeList = () => {
     const [hasNextPage, setHasNextPage] = useState<boolean>(true)
     const [lastCursor, setLastCursor] = useState<string>('')
     const [contentNodes, setContentNodes] = useState<Edge[]>([])
+    const navigate = useNavigate()
+
+    if (error && error.message === 'Response not successful: Received status code 401') {
+        navigate('/login?forceLogout=true')
+    }
 
     function fetchMoreNodes() {
         if (!hasNextPage) {

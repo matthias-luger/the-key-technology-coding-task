@@ -1,11 +1,12 @@
 import { ApolloError } from '@apollo/client'
 import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { LOCAL_STORAGE_KEYS, setIntoLocalStorage } from '../utils/LocalStorageUtils'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
 const LoginForm = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
     const { login } = useAuth()
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
@@ -34,6 +35,11 @@ const LoginForm = () => {
 
     return (
         <form onSubmit={handleLogin}>
+            {searchParams.get('forceLogout') === 'true' ? (
+                <>
+                    <p className="text-red-500 font-bold py-3">Your session expired. Please login again:</p>
+                </>
+            ) : null}
             <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                     E-Mail:

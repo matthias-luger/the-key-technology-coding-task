@@ -1,9 +1,9 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 import LoginPage from '../pages/LoginPage'
 import NodeListPage from '../pages/NodeListPage'
 
 export const router = createBrowserRouter([
-    { path: '/', Component: LoginPage },
+    { path: '/login', Component: LoginPage },
     { path: '/nodes', Component: NodeListPage },
-    { path: '*', Component: null }
+    { path: '*', Component: () => <Navigate to="/login" /> }
 ])

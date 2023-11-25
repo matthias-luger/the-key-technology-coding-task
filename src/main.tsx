@@ -5,7 +5,7 @@ import { ApolloProvider } from '@apollo/client'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { client } from './utils/ApolloUtils.tsx'
 import { RouterProvider } from 'react-router'
-import { router } from './utils/Routes.ts'
+import { router } from './utils/Routes.tsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
