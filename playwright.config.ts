@@ -35,27 +35,17 @@ export default defineConfig({
             name: 'webkit',
             use: { ...devices['Desktop Safari'], storageState: 'playwright/.auth/user.json' },
             dependencies: ['setup']
+        },
+        {
+            name: 'Mobile Chrome',
+            use: { ...devices['Pixel 5'], storageState: 'playwright/.auth/user.json' },
+            dependencies: ['setup']
+        },
+        {
+            name: 'Mobile Safari',
+            use: { ...devices['iPhone 12'], storageState: 'playwright/.auth/user.json' },
+            dependencies: ['setup']
         }
-
-        /* Test against mobile viewports. */
-        // {
-        //   name: 'Mobile Chrome',
-        //   use: { ...devices['Pixel 5'] },
-        // },
-        // {
-        //   name: 'Mobile Safari',
-        //   use: { ...devices['iPhone 12'] },
-        // },
-
-        /* Test against branded browsers. */
-        // {
-        //   name: 'Microsoft Edge',
-        //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-        // },
-        // {
-        //   name: 'Google Chrome',
-        //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-        // },
     ],
     webServer: {
         command: `npx vite --port ${process.env.TEST_SERVER_PORT || 3000}`,

@@ -5,6 +5,19 @@ import DraggableNodeListItem from './DraggableNodeListItem'
 import { useState } from 'react'
 import { LOCAL_STORAGE_KEYS, getFromLocalStorage } from '../utils/LocalStorageUtils'
 import { useNavigate } from 'react-router'
+import {
+    DragDropContext,
+    Draggable,
+    DraggableProvided,
+    DraggableRubric,
+    DraggableStateSnapshot,
+    DropResult,
+    DroppableProvided,
+    useKeyboardSensor,
+    useMouseSensor
+} from 'react-beautiful-dnd'
+import { StrictModeDroppable } from './StrictModeDroppable'
+import useTouchSensor from '../hooks/useTouchSensor'
 
 export interface ContentNode {
     id: string
@@ -45,6 +58,7 @@ const NodeList = () => {
     const [hasNextPage, setHasNextPage] = useState<boolean>(true)
     const [lastCursor, setLastCursor] = useState<string>('')
     const [contentNodes, setContentNodes] = useState<Edge[]>([])
+    const [isDragging, setIsDragging] = useState<boolean>(false)
     const navigate = useNavigate()
 
     if (error && error.message === 'Response not successful: Received status code 401') {
@@ -52,7 +66,7 @@ const NodeList = () => {
     }
 
     function fetchMoreNodes() {
-        if (!hasNextPage) {
+        if (!hasNextPage || isDragging) {
             return
         }
         fetchMore({
@@ -101,10 +115,20 @@ const NodeList = () => {
         setContentNodes(newContentNodes)
     }
 
-    function moveNode(dragIndex: number, hoverIndex: number) {
+    function moveNode(result: DropResult) {
+        const sourceIndex = result.source.index
+        const destinationIndex = result.destination?.index
+
+        if (destinationIndex === undefined) {
+            return
+        }
+        if (sourceIndex === destinationIndex) {
+            return
+        }
+
         const newNodes = [...contentNodes]
-        const draggedItem = newNodes.splice(dragIndex, 1)[0]
-        newNodes.splice(hoverIndex, 0, draggedItem)
+        const draggedItem = newNodes.splice(sourceIndex, 1)[0]
+        newNodes.splice(destinationIndex, 0, draggedItem)
 
         const nodeOrder: { [key: string]: number } = JSON.parse(getFromLocalStorage(LOCAL_STORAGE_KEYS.NODE_ORDERS) || '{}')
         newNodes.forEach((edge, index) => {
@@ -125,36 +149,71 @@ const NodeList = () => {
                 </div>
             ) : (
                 <div>
-                    <List<Edge>
-                        onItemsRendered={props => {
-                            if (loading) {
-                                return
-                            }
-                            if (props.visibleStopIndex === contentNodes.length - 1) {
-                                fetchMoreNodes()
+                    <DragDropContext
+                        enableDefaultSensors={false}
+                        sensors={[useMouseSensor, useKeyboardSensor, useTouchSensor]}
+                        onDragEnd={result => {
+                            moveNode(result)
+                            setIsDragging(false)
+                        }}
+                        onDragStart={() => {
+                            setIsDragging(true)
+                            if (window.navigator.vibrate) {
+                                window.navigator.vibrate(100)
                             }
                         }}
-                        itemKey={index => {
-                            return contentNodes[index]?.node?.id
-                        }}
-                        className="list-none pl-4"
-                        height={320}
-                        itemCount={contentNodes.length}
-                        itemSize={80}
-                        width={'auto'}
                     >
-                        {({ index, style, data }) => {
-                            return (
+                        <StrictModeDroppable
+                            droppableId="droppable"
+                            mode="virtual"
+                            renderClone={(provided: DraggableProvided, snapshot: DraggableStateSnapshot, rubric: DraggableRubric) => (
                                 <DraggableNodeListItem
-                                    index={index}
-                                    key={contentNodes[index]?.node?.id}
-                                    contentNode={contentNodes[index].node || data.node}
-                                    style={style}
-                                    moveNode={moveNode}
+                                    draggableProvided={provided}
+                                    isDragging={snapshot.isDragging}
+                                    style={{ margin: 0 }}
+                                    index={rubric.source.index}
+                                    contentNode={contentNodes[rubric.source.index].node}
+                                    key={contentNodes[rubric.source.index].node.id}
                                 />
-                            )
-                        }}
-                    </List>
+                            )}
+                        >
+                            {(droppableProvided: DroppableProvided) => (
+                                <List<Edge>
+                                    onItemsRendered={props => {
+                                        if (loading) {
+                                            return
+                                        }
+                                        if (props.visibleStopIndex === contentNodes.length - 1) {
+                                            fetchMoreNodes()
+                                        }
+                                    }}
+                                    outerRef={droppableProvided.innerRef}
+                                    className="list-none pl-4"
+                                    height={320}
+                                    itemCount={contentNodes.length}
+                                    itemSize={80}
+                                    width={'auto'}
+                                >
+                                    {({ index, style }) => {
+                                        return (
+                                            <Draggable draggableId={contentNodes[index].node.id} index={index} key={contentNodes[index].node.id}>
+                                                {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                                                    <DraggableNodeListItem
+                                                        index={index}
+                                                        key={contentNodes[index]?.node?.id}
+                                                        contentNode={contentNodes[index].node}
+                                                        style={{ margin: 0, ...style }}
+                                                        draggableProvided={provided}
+                                                        isDragging={snapshot.isDragging}
+                                                    />
+                                                )}
+                                            </Draggable>
+                                        )
+                                    }}
+                                </List>
+                            )}
+                        </StrictModeDroppable>
+                    </DragDropContext>
                     {contentNodes.length === 0 && !error ? (
                         <>
                             <li className="py-5 text-gray-500">
