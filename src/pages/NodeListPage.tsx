@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import NodeList from '../components/NodeList'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'

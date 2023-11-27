@@ -44,10 +44,13 @@ export interface ContentNodeQueryResult {
     }
 }
 
+const INITIAL_NODES_COUNT = 5
+const LAZY_LOAD_NODE_COUNT = 3
+
 const NodeList = () => {
     const { loading, error, fetchMore } = useQuery<ContentNodeQueryResult>(GET_CONTENT_NODES_QUERY, {
         variables: {
-            first: 5
+            first: INITIAL_NODES_COUNT
         },
         onCompleted(data) {
             setLastCursor(data.Admin.Tree.GetContentNodes.pageInfo.endCursor)
@@ -72,7 +75,7 @@ const NodeList = () => {
         fetchMore({
             variables: {
                 after: lastCursor,
-                first: 3
+                first: LAZY_LOAD_NODE_COUNT
             },
             updateQuery: (previousData, options) => {
                 if (!options.fetchMoreResult.Admin.Tree.GetContentNodes.pageInfo.hasNextPage) {
@@ -101,9 +104,12 @@ const NodeList = () => {
 
     function updateLocalNodeData(edges: Edge[], needsSorting = true) {
         let newContentNodes = [...edges]
+
+        // This can be removed, if we can guarantee that the API will never return duplicate nodes
         newContentNodes = newContentNodes.filter((edge, index, self) => {
             return index === self.findIndex(e => e.node.id === edge.node.id)
         })
+
         if (needsSorting) {
             const orderMap = JSON.parse(getFromLocalStorage(LOCAL_STORAGE_KEYS.NODE_ORDERS) || '{}')
             newContentNodes.sort((a, b) => {
