@@ -13,11 +13,11 @@ Builds the app for production to the `dist` folder.\
 
 ### npm run test
 
-Run the playwright tests.
+Run the playwright tests. Make sure to set the necessary environment variables before running the tests.
 
 ### npm run preview
 
-Run the app in production mode.
+Run the app in production mode (run `npm run build` first)
 
 ## Environment Variables
 
@@ -32,3 +32,7 @@ To successfully run the tests, create a `.env.local` file at the root of the pro
 
 -   `TEST_PASSWORD`: The password the playwright tests will use.
 -   `TEST_EMAIL`: The email address the playwright tests will use.
+
+## Demo
+
+There is currently a demo running at: https://thekey.coflnet.com
